@@ -1,15 +1,27 @@
 use std::io::stdout;
 
-use crate::data::{Point3, Vec3};
-use data::Color;
 use indicatif::ProgressIterator;
-use ray::Ray;
+
+use crate::data::{Color, Point3, Vec3};
+use crate::ray::Ray;
 
 mod data;
 mod ray;
 
+fn hit_sphere(center: &Point3, radius: f32, r: &Ray) -> bool {
+    let oc = r.orig - center;
+    let a = Vec3::dot(&r.dir, &r.dir);
+    let b = 2.0 * Vec3::dot(&oc, &r.dir);
+    let c = Vec3::dot(&oc, &oc) - radius * radius;
+    let discriminant = b * b - 4.0 * a * c;
+    discriminant > f32::EPSILON
+}
+
 fn ray_color(r: &Ray) -> Color {
-    let unit_direction = Vec3::unit_vector(r.dir);
+    if hit_sphere(&Point3::new(0.0, 0.0, -1.0), 0.5, r) {
+        return Color::new(1.0, 0.0, 0.0);
+    }
+    let unit_direction = Vec3::unit_vector(&r.dir);
     let t = 0.5 * (unit_direction.y + 1.0);
     (1.0 - t) * Color::new(1.0, 1.0, 1.0) + t * Color::new(0.5, 0.7, 1.0)
 }
@@ -45,7 +57,7 @@ fn main() {
             );
             let pixel_color = ray_color(&r);
 
-            data::write_color(&mut stdout(), pixel_color);
+            data::write_color(&mut stdout(), &pixel_color);
         }
     }
 }

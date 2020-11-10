@@ -1,8 +1,6 @@
 use std::io::Write;
 use std::ops::{Add, Div, Mul, Sub};
 
-const EPSILON: f32 = 1e-8;
-
 #[derive(Debug, Default, Copy, Clone)]
 pub struct Vec3 {
     pub x: f32,
@@ -35,8 +33,20 @@ impl Vec3 {
         )
     }
 
-    pub fn unit_vector(v: Self) -> Self {
+    pub fn unit_vector(v: &Self) -> Self {
         v / v.length()
+    }
+}
+
+impl Add for &Vec3 {
+    type Output = Vec3;
+
+    fn add(self, other: Self) -> Self::Output {
+        Vec3 {
+            x: self.x + other.x,
+            y: self.y + other.y,
+            z: self.z + other.z,
+        }
     }
 }
 
@@ -44,10 +54,34 @@ impl Add for Vec3 {
     type Output = Self;
 
     fn add(self, other: Self) -> Self::Output {
-        Self {
-            x: self.x + other.x,
-            y: self.y + other.y,
-            z: self.z + other.z,
+        &self + &other
+    }
+}
+
+impl Add<&Vec3> for Vec3 {
+    type Output = Self;
+
+    fn add(self, other: &Vec3) -> Self::Output {
+        &self + other
+    }
+}
+
+impl Add<Vec3> for &Vec3 {
+    type Output = Vec3;
+
+    fn add(self, other: Vec3) -> Self::Output {
+        self + &other
+    }
+}
+
+impl Sub for &Vec3 {
+    type Output = Vec3;
+
+    fn sub(self, other: Self) -> Self::Output {
+        Vec3 {
+            x: self.x - other.x,
+            y: self.y - other.y,
+            z: self.z - other.z,
         }
     }
 }
@@ -56,11 +90,51 @@ impl Sub for Vec3 {
     type Output = Self;
 
     fn sub(self, other: Self) -> Self::Output {
-        Self {
-            x: self.x - other.x,
-            y: self.y - other.y,
-            z: self.z - other.z,
+        &self - &other
+    }
+}
+
+impl Sub<&Vec3> for Vec3 {
+    type Output = Self;
+
+    fn sub(self, other: &Vec3) -> Self::Output {
+        &self - other
+    }
+}
+
+impl Sub<Vec3> for &Vec3 {
+    type Output = Vec3;
+
+    fn sub(self, other: Vec3) -> Self::Output {
+        self - &other
+    }
+}
+
+impl Mul<&Vec3> for f32 {
+    type Output = Vec3;
+
+    fn mul(self, other: &Vec3) -> Self::Output {
+        Vec3 {
+            x: self * other.x,
+            y: self * other.y,
+            z: self * other.z,
         }
+    }
+}
+
+impl Mul<Vec3> for f32 {
+    type Output = Vec3;
+
+    fn mul(self, other: Vec3) -> Self::Output {
+        self * (&other)
+    }
+}
+
+impl Mul<f32> for &Vec3 {
+    type Output = Vec3;
+
+    fn mul(self, other: f32) -> Self::Output {
+        other * self
     }
 }
 
@@ -72,15 +146,15 @@ impl Mul<f32> for Vec3 {
     }
 }
 
-impl Mul<Vec3> for f32 {
+impl Div<f32> for &Vec3 {
     type Output = Vec3;
 
-    fn mul(self, other: Vec3) -> Self::Output {
-        Vec3 {
-            x: self * other.x,
-            y: self * other.y,
-            z: self * other.z,
+    fn div(self, other: f32) -> Self::Output {
+        if other.abs() < f32::EPSILON {
+            panic!("Invalid division by zero!");
         }
+
+        1.0 / other * self
     }
 }
 
@@ -88,11 +162,7 @@ impl Div<f32> for Vec3 {
     type Output = Self;
 
     fn div(self, other: f32) -> Self::Output {
-        if other.abs() < EPSILON {
-            panic!("Invalid division by zero!");
-        }
-
-        1.0 / other * self
+        (&self).div(other)
     }
 }
 
@@ -113,7 +183,7 @@ impl Mul for Vec3 {
 pub type Point3 = Vec3;
 pub type Color = Vec3;
 
-pub fn write_color(w: &mut dyn Write, pixel_color: Color) {
+pub fn write_color(w: &mut dyn Write, pixel_color: &Color) {
     let ir = (255.999 * pixel_color.x) as i32;
     let ig = (255.999 * pixel_color.y) as i32;
     let ib = (255.999 * pixel_color.z) as i32;
