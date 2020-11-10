@@ -3,23 +3,18 @@ use std::io::stdout;
 use indicatif::ProgressIterator;
 
 use crate::data::{Color, Point3, Vec3};
+use crate::hittable::{HitRange, Hittable, HittableList};
 use crate::ray::Ray;
+use crate::sphere::Sphere;
 
 mod data;
+mod hittable;
 mod ray;
+mod sphere;
 
-fn hit_sphere(center: &Point3, radius: f32, r: &Ray) -> bool {
-    let oc = r.orig - center;
-    let a = Vec3::dot(&r.dir, &r.dir);
-    let b = 2.0 * Vec3::dot(&oc, &r.dir);
-    let c = Vec3::dot(&oc, &oc) - radius * radius;
-    let discriminant = b * b - 4.0 * a * c;
-    discriminant > f32::EPSILON
-}
-
-fn ray_color(r: &Ray) -> Color {
-    if hit_sphere(&Point3::new(0.0, 0.0, -1.0), 0.5, r) {
-        return Color::new(1.0, 0.0, 0.0);
+fn ray_color(r: &Ray, world: &dyn Hittable) -> Color {
+    if let Some(rec) = world.hit(r, HitRange::new(0.0, f32::INFINITY)) {
+        return 0.5 * (rec.normal() + Color::new(1.0, 1.0, 1.0));
     }
     let unit_direction = Vec3::unit_vector(&r.dir);
     let t = 0.5 * (unit_direction.y + 1.0);
@@ -31,6 +26,11 @@ fn main() {
     let aspect_ratio: f32 = 16.0 / 9.0;
     let image_width = 400i32;
     let image_height = ((image_width as f32) / aspect_ratio) as i32;
+
+    // World
+    let mut world = HittableList::new();
+    (*world).push(Box::new(Sphere::new(Point3::new(0.0, 0.0, -1.0), 0.5)));
+    (*world).push(Box::new(Sphere::new(Point3::new(0.0, -100.5, -1.0), 100.0)));
 
     // Camera
     let viewport_height = 2.0f32;
@@ -55,7 +55,7 @@ fn main() {
                 origin,
                 lower_left_corner + u * horizontal + v * vertical - origin,
             );
-            let pixel_color = ray_color(&r);
+            let pixel_color = ray_color(&r, &world);
 
             data::write_color(&mut stdout(), &pixel_color);
         }

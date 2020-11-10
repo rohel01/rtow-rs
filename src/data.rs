@@ -1,7 +1,7 @@
 use std::io::Write;
-use std::ops::{Add, Div, Mul, Sub};
+use std::ops::{Add, Div, Mul, Neg, Sub};
 
-#[derive(Debug, Default, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone, PartialEq)]
 pub struct Vec3 {
     pub x: f32,
     pub y: f32,
@@ -9,7 +9,7 @@ pub struct Vec3 {
 }
 
 impl Vec3 {
-    pub fn new(x: f32, y: f32, z: f32) -> Self {
+    pub const fn new(x: f32, y: f32, z: f32) -> Self {
         Vec3 { x, y, z }
     }
 
@@ -175,6 +175,22 @@ impl Mul for Vec3 {
             y: self.y * other.y,
             z: self.z * other.z,
         }
+    }
+}
+
+impl Neg for &Vec3 {
+    type Output = Vec3;
+
+    fn neg(self) -> Self::Output {
+        -1.0 * self
+    }
+}
+
+impl Neg for Vec3 {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        (&self).neg()
     }
 }
 
