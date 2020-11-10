@@ -1,15 +1,13 @@
-use std::ops::Deref;
-use std::ops::{Add, Div, Mul, Sub};
-
 use std::io::Write;
+use std::ops::{Add, Div, Mul, Sub};
 
 const EPSILON: f32 = 1e-8;
 
 #[derive(Debug, Default, Copy, Clone)]
 pub struct Vec3 {
-    x: f32,
-    y: f32,
-    z: f32,
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
 }
 
 impl Vec3 {
@@ -70,10 +68,18 @@ impl Mul<f32> for Vec3 {
     type Output = Self;
 
     fn mul(self, other: f32) -> Self::Output {
-        Self {
-            x: other * self.x,
-            y: other * self.y,
-            z: other * self.z,
+        other * self
+    }
+}
+
+impl Mul<Vec3> for f32 {
+    type Output = Vec3;
+
+    fn mul(self, other: Vec3) -> Self::Output {
+        Vec3 {
+            x: self * other.x,
+            y: self * other.y,
+            z: self * other.z,
         }
     }
 }
@@ -86,8 +92,7 @@ impl Div<f32> for Vec3 {
             panic!("Invalid division by zero!");
         }
 
-        // TODO Comprendre comment je peux rendre ca commutatif
-        self * 1.0 / other
+        1.0 / other * self
     }
 }
 
@@ -108,7 +113,7 @@ impl Mul for Vec3 {
 pub type Point3 = Vec3;
 pub type Color = Vec3;
 
-pub fn write_color(w: &mut Write, pixel_color: Color) {
+pub fn write_color(w: &mut dyn Write, pixel_color: Color) {
     let ir = (255.999 * pixel_color.x) as i32;
     let ig = (255.999 * pixel_color.y) as i32;
     let ib = (255.999 * pixel_color.z) as i32;
