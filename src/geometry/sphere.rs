@@ -1,7 +1,7 @@
-use crate::data::{Point3, Vec3};
-use crate::hittable::{HitRange, HitRecord, Hittable};
+use crate::geometry::hittable::{HitRange, HitRecord, Hittable};
+use crate::geometry::ray::Ray;
+use crate::geometry::{Point3, Vec3};
 use crate::material::Material;
-use crate::ray::Ray;
 
 pub struct Sphere {
     pub center: Point3,

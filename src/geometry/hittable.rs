@@ -1,13 +1,14 @@
 use rand::Rng;
 use std::ops::{Deref, DerefMut, RangeInclusive};
 
-use crate::data::{Color, Point3, Vec3};
-use crate::dielectric::Dielectric;
-use crate::lambertian::Lambertian;
+use crate::color::Color;
+use crate::geometry::ray::Ray;
+use crate::geometry::sphere::Sphere;
+use crate::geometry::{Point3, Vec3};
+use crate::material::dielectric::Dielectric;
+use crate::material::lambertian::Lambertian;
+use crate::material::metal::Metal;
 use crate::material::Material;
-use crate::metal::Metal;
-use crate::ray::Ray;
-use crate::sphere::Sphere;
 
 pub struct HitRecord<'a> {
     p: Point3,

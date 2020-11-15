@@ -1,6 +1,10 @@
-use crate::data::Color;
-use crate::hittable::HitRecord;
-use crate::ray::Ray;
+use crate::color::Color;
+use crate::geometry::hittable::HitRecord;
+use crate::geometry::ray::Ray;
+
+pub mod dielectric;
+pub mod lambertian;
+pub mod metal;
 
 pub struct ScatteredRecord {
     pub attenuation: Color,

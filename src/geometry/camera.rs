@@ -1,5 +1,5 @@
-use crate::data::{Point3, Vec3};
-use crate::ray::Ray;
+use crate::geometry::ray::Ray;
+use crate::geometry::{Point3, Vec3};
 
 #[allow(dead_code)]
 pub struct Camera {

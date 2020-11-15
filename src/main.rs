@@ -5,20 +5,16 @@ use indicatif::{ParallelProgressIterator, ProgressIterator};
 use rand::Rng;
 use rayon::prelude::*;
 
-use crate::camera::Camera;
-use crate::data::{write_color, Color, Point3, Vec3};
-use crate::hittable::{HitRange, Hittable, HittableList};
-use crate::ray::Ray;
+use geometry::camera::Camera;
+use geometry::hittable::{HitRange, Hittable, HittableList};
+use geometry::ray::Ray;
+use geometry::{Point3, Vec3};
 
-mod camera;
-mod data;
-mod dielectric;
-mod hittable;
-mod lambertian;
+use crate::color::{write_color, Color};
+
+mod color;
+mod geometry;
 mod material;
-mod metal;
-mod ray;
-mod sphere;
 
 fn ray_color(r: &Ray, world: &dyn Hittable, depth: &mut impl Iterator<Item = u8>) -> Color {
     if depth.next().is_some() {
