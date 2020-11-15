@@ -1,5 +1,5 @@
 use std::io::Write;
-use std::ops::{Add, Div, Mul, Neg, Sub};
+use std::ops::{Add, Div, Mul, Neg, RangeInclusive, Sub};
 
 #[derive(Debug, Default, Copy, Clone, PartialEq)]
 pub struct Vec3 {
@@ -10,7 +10,7 @@ pub struct Vec3 {
 
 impl Vec3 {
     pub const fn new(x: f32, y: f32, z: f32) -> Self {
-        Vec3 { x, y, z }
+        Self { x, y, z }
     }
 
     pub fn length(&self) -> f32 {
@@ -199,10 +199,28 @@ impl Neg for Vec3 {
 pub type Point3 = Vec3;
 pub type Color = Vec3;
 
-pub fn write_color(w: &mut dyn Write, pixel_color: &Color) {
-    let ir = (255.999 * pixel_color.x) as i32;
-    let ig = (255.999 * pixel_color.y) as i32;
-    let ib = (255.999 * pixel_color.z) as i32;
+pub type ValueRange = RangeInclusive<f32>;
+
+fn clamp(val: f32, range: &ValueRange) -> f32 {
+    if val < *range.start() {
+        *range.start()
+    } else if val > *range.end() {
+        *range.end()
+    } else {
+        val
+    }
+}
+
+pub fn write_color(w: &mut dyn Write, pixel_color: &Color, samples_per_pixel: i32) {
+    // Divide the color by the number of samples
+    let scale = 1.0 / (samples_per_pixel as f32);
+
+    let clamp_range = 0.0f32..=0.999f32;
+
+    let scaled_color = scale * pixel_color;
+    let ir = (256.0 * clamp(scaled_color.x, &clamp_range)) as i32;
+    let ig = (256.0 * clamp(scaled_color.y, &clamp_range)) as i32;
+    let ib = (256.0 * clamp(scaled_color.z, &clamp_range)) as i32;
 
     writeln!(w, "{} {} {}", ir, ig, ib).expect("Failed to write to target stream!");
 }
