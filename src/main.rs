@@ -70,11 +70,6 @@ fn main() {
         0.5,
         &material_left,
     ));
-    let sphere_left_bubble = Box::new(Sphere::new(
-        Point3::new(-1.0, 0.0, -1.0),
-        -0.4,
-        &material_left,
-    ));
     let sphere_right = Box::new(Sphere::new(
         Point3::new(1.0, 0.0, -1.0),
         0.5,
@@ -85,11 +80,16 @@ fn main() {
     (*world).push(sphere_ground);
     (*world).push(sphere_center);
     (*world).push(sphere_left);
-    (*world).push(sphere_left_bubble);
     (*world).push(sphere_right);
 
     // Camera
-    let cam = Camera::new();
+    let cam = Camera::new(
+        Point3::new(-2.0, 2.0, 1.0),
+        Point3::new(0.0, 0.0, -1.0),
+        Point3::new(0.0, 1.0, 0.0),
+        20.0,
+        ASPECT_RATIO,
+    );
 
     //Render
     println!("P3\n{} {}\n255", image_width, image_height);
