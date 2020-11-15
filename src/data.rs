@@ -1,3 +1,4 @@
+use rand::Rng;
 use std::io::Write;
 use std::ops::{Add, Div, Mul, Neg, RangeInclusive, Sub};
 
@@ -21,6 +22,14 @@ impl Vec3 {
         self.x * self.x + self.y * self.y + self.z * self.z
     }
 
+    pub fn sqrt(&self) -> Self {
+        Self {
+            x: self.x.sqrt(),
+            y: self.y.sqrt(),
+            z: self.z.sqrt(),
+        }
+    }
+
     pub fn dot(u: &Self, v: &Self) -> f32 {
         u.x * v.x + u.y * v.y + u.z * v.z
     }
@@ -35,6 +44,42 @@ impl Vec3 {
 
     pub fn unit_vector(v: &Self) -> Self {
         v / v.length()
+    }
+
+    pub fn random() -> Self {
+        let mut rng = rand::thread_rng();
+        Self {
+            x: rng.gen::<f32>(),
+            y: rng.gen::<f32>(),
+            z: rng.gen::<f32>(),
+        }
+    }
+
+    pub fn random_bounded(min: f32, max: f32) -> Self {
+        let mut rng = rand::thread_rng();
+        Self {
+            x: rng.gen_range(min, max),
+            y: rng.gen_range(min, max),
+            z: rng.gen_range(min, max),
+        }
+    }
+
+    pub fn random_in_unit_sphere() -> Self {
+        loop {
+            let p = Vec3::random_bounded(-1.0, 1.0);
+            if p.length_squared() < 1.0 {
+                break p;
+            }
+        }
+    }
+
+    pub fn random_in_hemisphere(normal: &Vec3) -> Self {
+        let in_unit_sphere = Self::random_in_unit_sphere();
+        if Vec3::dot(&in_unit_sphere, normal) > 0.0 {
+            in_unit_sphere
+        } else {
+            -in_unit_sphere
+        }
     }
 }
 
@@ -212,15 +257,18 @@ fn clamp(val: f32, range: &ValueRange) -> f32 {
 }
 
 pub fn write_color(w: &mut dyn Write, pixel_color: &Color, samples_per_pixel: i32) {
-    // Divide the color by the number of samples
-    let scale = 1.0 / (samples_per_pixel as f32);
-
     let clamp_range = 0.0f32..=0.999f32;
 
+    // Divide the color by the number of samples
+    let scale = 1.0 / (samples_per_pixel as f32);
     let scaled_color = scale * pixel_color;
-    let ir = (256.0 * clamp(scaled_color.x, &clamp_range)) as i32;
-    let ig = (256.0 * clamp(scaled_color.y, &clamp_range)) as i32;
-    let ib = (256.0 * clamp(scaled_color.z, &clamp_range)) as i32;
+
+    // Apply gamma 2 correction
+    let corrected_color = scaled_color.sqrt();
+
+    let ir = (256.0 * clamp(corrected_color.x, &clamp_range)) as i32;
+    let ig = (256.0 * clamp(corrected_color.y, &clamp_range)) as i32;
+    let ib = (256.0 * clamp(corrected_color.z, &clamp_range)) as i32;
 
     writeln!(w, "{} {} {}", ir, ig, ib).expect("Failed to write to target stream!");
 }

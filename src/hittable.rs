@@ -32,6 +32,9 @@ impl HitRecord {
     pub fn normal(&self) -> &Vec3 {
         &self.normal
     }
+    pub fn p(&self) -> &Point3 {
+        &self.p
+    }
 }
 
 pub type HitRange = RangeInclusive<f32>;
