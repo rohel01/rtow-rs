@@ -12,7 +12,7 @@ use crate::sphere::Sphere;
 pub struct HitRecord<'a> {
     p: Point3,
     normal: Vec3,
-    material: &'a Box<dyn Material + Send + Sync>,
+    material: &'a (dyn Material + Send + Sync),
     t: f32,
     front_face: bool,
 }
@@ -20,7 +20,7 @@ pub struct HitRecord<'a> {
 impl<'a> HitRecord<'a> {
     pub fn new(
         p: Point3,
-        material: &'a Box<dyn Material + Send + Sync>,
+        material: &'a (dyn Material + Send + Sync),
         outward_normal: &Vec3,
         t: f32,
         r: &Ray,
@@ -49,8 +49,8 @@ impl<'a> HitRecord<'a> {
     pub fn p(&self) -> &Point3 {
         &self.p
     }
-    pub fn material(&self) -> &Box<dyn Material + Send + Sync> {
-        &self.material
+    pub fn material(&self) -> &(dyn Material + Send + Sync) {
+        self.material
     }
     pub fn front_face(&self) -> bool {
         self.front_face

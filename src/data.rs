@@ -130,7 +130,7 @@ impl Add for Vec3 {
     type Output = Self;
 
     fn add(self, other: Self) -> Self::Output {
-        &self + &other
+        (&self).add(&other)
     }
 }
 
@@ -138,7 +138,7 @@ impl Add<&Vec3> for Vec3 {
     type Output = Self;
 
     fn add(self, other: &Vec3) -> Self::Output {
-        &self + other
+        (&self).add(other)
     }
 }
 
@@ -146,7 +146,7 @@ impl Add<Vec3> for &Vec3 {
     type Output = Vec3;
 
     fn add(self, other: Vec3) -> Self::Output {
-        self + &other
+        self.add(&other)
     }
 }
 
@@ -166,7 +166,7 @@ impl Sub for Vec3 {
     type Output = Self;
 
     fn sub(self, other: Self) -> Self::Output {
-        &self - &other
+        (&self).sub(&other)
     }
 }
 
@@ -174,7 +174,7 @@ impl Sub<&Vec3> for Vec3 {
     type Output = Self;
 
     fn sub(self, other: &Vec3) -> Self::Output {
-        &self - other
+        (&self).sub(other)
     }
 }
 
@@ -182,7 +182,7 @@ impl Sub<Vec3> for &Vec3 {
     type Output = Vec3;
 
     fn sub(self, other: Vec3) -> Self::Output {
-        self - &other
+        self.sub(&other)
     }
 }
 
@@ -202,7 +202,7 @@ impl Mul<Vec3> for f32 {
     type Output = Vec3;
 
     fn mul(self, other: Vec3) -> Self::Output {
-        self * (&other)
+        self.mul(&other)
     }
 }
 
@@ -210,7 +210,7 @@ impl Mul<f32> for &Vec3 {
     type Output = Vec3;
 
     fn mul(self, other: f32) -> Self::Output {
-        other * self
+        other.mul(self)
     }
 }
 
@@ -218,7 +218,7 @@ impl Mul<f32> for Vec3 {
     type Output = Self;
 
     fn mul(self, other: f32) -> Self::Output {
-        other * self
+        other.mul(self)
     }
 }
 
@@ -230,7 +230,7 @@ impl Div<f32> for &Vec3 {
             panic!("Invalid division by zero!");
         }
 
-        1.0 / other * self
+        (1.0 / other).mul(self)
     }
 }
 
@@ -258,7 +258,7 @@ impl Neg for &Vec3 {
     type Output = Vec3;
 
     fn neg(self) -> Self::Output {
-        -1.0 * self
+        (-1.0).mul(self)
     }
 }
 

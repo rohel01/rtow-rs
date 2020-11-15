@@ -43,7 +43,7 @@ impl Hittable for Sphere {
             let outward_normal = (valid_hitpoint - self.center) / self.radius;
             Option::from(HitRecord::new(
                 valid_hitpoint,
-                &self.material,
+                self.material.as_ref(),
                 &outward_normal,
                 *valid_root,
                 r,
