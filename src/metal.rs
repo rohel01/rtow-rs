@@ -17,7 +17,7 @@ impl Metal {
 }
 
 impl Material for Metal {
-    fn scatter<'a>(&self, r_in: &Ray, rec: &HitRecord<'a>) -> Option<ScatteredRecord> {
+    fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<ScatteredRecord> {
         let reflected = Vec3::reflect(&Vec3::unit_vector(&r_in.dir), rec.normal());
         let scattered = Ray::new(
             *rec.p(),

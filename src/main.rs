@@ -5,12 +5,8 @@ use rand::Rng;
 
 use crate::camera::Camera;
 use crate::data::{Color, Point3, Vec3};
-use crate::dielectric::Dielectric;
 use crate::hittable::{HitRange, Hittable, HittableList};
-use crate::lambertian::Lambertian;
-use crate::metal::Metal;
 use crate::ray::Ray;
-use crate::sphere::Sphere;
 
 mod camera;
 mod data;
@@ -21,8 +17,6 @@ mod material;
 mod metal;
 mod ray;
 mod sphere;
-
-const ASPECT_RATIO: f32 = 16.0 / 9.0;
 
 fn ray_color(r: &Ray, world: &dyn Hittable, depth: &mut impl Iterator<Item = u8>) -> Color {
     if depth.next().is_some() {
@@ -44,51 +38,27 @@ fn ray_color(r: &Ray, world: &dyn Hittable, depth: &mut impl Iterator<Item = u8>
 
 fn main() {
     // Image
-    let image_width = 400i32;
-    let image_height = ((image_width as f32) / ASPECT_RATIO) as i32;
-    let samples_per_pixel = 100i32;
+    let aspect_ratio = 3.0f32 / 2.0f32;
+    let image_width = 1200i32;
+    let image_height = ((image_width as f32) / aspect_ratio) as i32;
+    let samples_per_pixel = 500i32;
     let max_depth = 50u8;
 
     // World
-    let material_ground = Lambertian::new(&Color::new(0.8, 0.8, 0.0));
-    let material_center = Lambertian::new(&Color::new(0.1, 0.2, 0.5));
-    let material_left = Dielectric::new(1.5);
-    let material_right = Metal::new(&Color::new(0.8, 0.6, 0.2), 0.0);
-
-    let sphere_ground = Box::new(Sphere::new(
-        Point3::new(0.0, -100.5, -1.0),
-        100.0,
-        &material_ground,
-    ));
-    let sphere_center = Box::new(Sphere::new(
-        Point3::new(0.0, 0.0, -1.0),
-        0.5,
-        &material_center,
-    ));
-    let sphere_left = Box::new(Sphere::new(
-        Point3::new(-1.0, 0.0, -1.0),
-        0.5,
-        &material_left,
-    ));
-    let sphere_right = Box::new(Sphere::new(
-        Point3::new(1.0, 0.0, -1.0),
-        0.5,
-        &material_right,
-    ));
-
-    let mut world = HittableList::new();
-    (*world).push(sphere_ground);
-    (*world).push(sphere_center);
-    (*world).push(sphere_left);
-    (*world).push(sphere_right);
+    let world = HittableList::random_scene();
 
     // Camera
+    let lookfrom = Point3::new(13.0, 2.0, 3.0);
+    let lookat = Point3::new(0.0, 0.0, 0.0);
+
     let cam = Camera::new(
-        Point3::new(-2.0, 2.0, 1.0),
-        Point3::new(0.0, 0.0, -1.0),
-        Point3::new(0.0, 1.0, 0.0),
+        lookfrom,
+        lookat,
+        Vec3::new(0.0, 1.0, 0.0),
         20.0,
-        ASPECT_RATIO,
+        aspect_ratio,
+        0.1,
+        10.0,
     );
 
     //Render
