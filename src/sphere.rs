@@ -1,23 +1,26 @@
 use crate::data::{Point3, Vec3};
 use crate::hittable::{HitRange, HitRecord, Hittable};
+use crate::material::Material;
 use crate::ray::Ray;
 
-#[derive(Debug, Default, Copy, Clone)]
-pub struct Sphere {
+#[derive(Copy, Clone)]
+pub struct Sphere<'a> {
     pub center: Point3,
     pub radius: f32,
+    pub material: &'a dyn Material,
 }
 
-impl Sphere {
-    pub fn new(cen: Point3, r: f32) -> Self {
+impl<'a> Sphere<'a> {
+    pub fn new(cen: Point3, r: f32, m: &'a dyn Material) -> Self {
         Sphere {
             center: cen,
             radius: r,
+            material: m,
         }
     }
 }
 
-impl Hittable for Sphere {
+impl<'a> Hittable for Sphere<'a> {
     fn hit(&self, r: &Ray, range: HitRange) -> Option<HitRecord> {
         let oc = r.orig - self.center;
         let a = r.dir.length_squared();
@@ -41,6 +44,7 @@ impl Hittable for Sphere {
             let outward_normal = (valid_hitpoint - self.center) / self.radius;
             Option::from(HitRecord::new(
                 valid_hitpoint,
+                self.material,
                 &outward_normal,
                 *valid_root,
                 r,

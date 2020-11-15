@@ -5,13 +5,20 @@ use rand::Rng;
 
 use crate::camera::Camera;
 use crate::data::{Color, Point3, Vec3};
+use crate::dielectric::Dielectric;
 use crate::hittable::{HitRange, Hittable, HittableList};
+use crate::lambertian::Lambertian;
+use crate::metal::Metal;
 use crate::ray::Ray;
 use crate::sphere::Sphere;
 
 mod camera;
 mod data;
+mod dielectric;
 mod hittable;
+mod lambertian;
+mod material;
+mod metal;
 mod ray;
 mod sphere;
 
@@ -20,8 +27,11 @@ const ASPECT_RATIO: f32 = 16.0 / 9.0;
 fn ray_color(r: &Ray, world: &dyn Hittable, depth: &mut impl Iterator<Item = u8>) -> Color {
     if depth.next().is_some() {
         if let Some(rec) = world.hit(r, HitRange::new(0.001, f32::INFINITY)) {
-            let target = rec.p() + Vec3::random_in_hemisphere(rec.normal());
-            return 0.5 * ray_color(&Ray::new(*rec.p(), target - rec.p()), world, depth);
+            if let Some(scatter_record) = rec.material().scatter(r, &rec) {
+                return scatter_record.attenuation * ray_color(&scatter_record.ray, world, depth);
+            } else {
+                return Color::new(0.0, 0.0, 0.0);
+            }
         }
 
         let unit_direction = Vec3::unit_vector(&r.dir);
@@ -40,9 +50,43 @@ fn main() {
     let max_depth = 50u8;
 
     // World
+    let material_ground = Lambertian::new(&Color::new(0.8, 0.8, 0.0));
+    let material_center = Lambertian::new(&Color::new(0.1, 0.2, 0.5));
+    let material_left = Dielectric::new(1.5);
+    let material_right = Metal::new(&Color::new(0.8, 0.6, 0.2), 0.0);
+
+    let sphere_ground = Box::new(Sphere::new(
+        Point3::new(0.0, -100.5, -1.0),
+        100.0,
+        &material_ground,
+    ));
+    let sphere_center = Box::new(Sphere::new(
+        Point3::new(0.0, 0.0, -1.0),
+        0.5,
+        &material_center,
+    ));
+    let sphere_left = Box::new(Sphere::new(
+        Point3::new(-1.0, 0.0, -1.0),
+        0.5,
+        &material_left,
+    ));
+    let sphere_left_bubble = Box::new(Sphere::new(
+        Point3::new(-1.0, 0.0, -1.0),
+        -0.4,
+        &material_left,
+    ));
+    let sphere_right = Box::new(Sphere::new(
+        Point3::new(1.0, 0.0, -1.0),
+        0.5,
+        &material_right,
+    ));
+
     let mut world = HittableList::new();
-    (*world).push(Box::new(Sphere::new(Point3::new(0.0, 0.0, -1.0), 0.5)));
-    (*world).push(Box::new(Sphere::new(Point3::new(0.0, -100.5, -1.0), 100.0)));
+    (*world).push(sphere_ground);
+    (*world).push(sphere_center);
+    (*world).push(sphere_left);
+    (*world).push(sphere_left_bubble);
+    (*world).push(sphere_right);
 
     // Camera
     let cam = Camera::new();

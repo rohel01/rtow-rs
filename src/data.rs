@@ -22,12 +22,21 @@ impl Vec3 {
         self.x * self.x + self.y * self.y + self.z * self.z
     }
 
+    pub fn near_zero(&self) -> bool {
+        let s = 1e-8f32;
+        self.x.abs() < s && self.y.abs() < s && self.z.abs() < s
+    }
+
     pub fn sqrt(&self) -> Self {
         Self {
             x: self.x.sqrt(),
             y: self.y.sqrt(),
             z: self.z.sqrt(),
         }
+    }
+
+    pub fn unit_vector(v: &Self) -> Self {
+        v / v.length()
     }
 
     pub fn dot(u: &Self, v: &Self) -> f32 {
@@ -42,8 +51,16 @@ impl Vec3 {
         )
     }
 
-    pub fn unit_vector(v: &Self) -> Self {
-        v / v.length()
+    pub fn reflect(v: &Self, n: &Self) -> Self {
+        v - 2.0 * Self::dot(v, n) * n
+    }
+
+    pub fn refract(uv: &Self, n: &Self, etai_over_etat: f32) -> Self {
+        let cos_theta = Self::dot(&-uv, n).min(1.0);
+        let r_out_perp = etai_over_etat * (uv + cos_theta * n);
+        let r_out_parallel = -(1.0 - r_out_perp.length_squared()).abs().sqrt() * n;
+
+        r_out_perp + r_out_parallel
     }
 
     pub fn random() -> Self {
@@ -71,6 +88,10 @@ impl Vec3 {
                 break p;
             }
         }
+    }
+
+    pub fn random_unit_vector() -> Self {
+        Self::unit_vector(&Self::random_in_unit_sphere())
     }
 
     pub fn random_in_hemisphere(normal: &Vec3) -> Self {
