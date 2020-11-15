@@ -6,11 +6,11 @@ use crate::ray::Ray;
 pub struct Sphere {
     pub center: Point3,
     pub radius: f32,
-    pub material: Box<dyn Material>,
+    pub material: Box<dyn Material + Send + Sync>,
 }
 
 impl Sphere {
-    pub fn new(cen: Point3, r: f32, m: Box<dyn Material>) -> Self {
+    pub fn new(cen: Point3, r: f32, m: Box<dyn Material + Send + Sync>) -> Self {
         Sphere {
             center: cen,
             radius: r,

@@ -12,7 +12,7 @@ use crate::sphere::Sphere;
 pub struct HitRecord<'a> {
     p: Point3,
     normal: Vec3,
-    material: &'a Box<dyn Material>,
+    material: &'a Box<dyn Material + Send + Sync>,
     t: f32,
     front_face: bool,
 }
@@ -20,7 +20,7 @@ pub struct HitRecord<'a> {
 impl<'a> HitRecord<'a> {
     pub fn new(
         p: Point3,
-        material: &'a Box<dyn Material>,
+        material: &'a Box<dyn Material + Send + Sync>,
         outward_normal: &Vec3,
         t: f32,
         r: &Ray,
@@ -49,7 +49,7 @@ impl<'a> HitRecord<'a> {
     pub fn p(&self) -> &Point3 {
         &self.p
     }
-    pub fn material(&self) -> &Box<dyn Material> {
+    pub fn material(&self) -> &Box<dyn Material + Send + Sync> {
         &self.material
     }
     pub fn front_face(&self) -> bool {
@@ -63,7 +63,7 @@ pub trait Hittable {
     fn hit(&self, r: &Ray, range: HitRange) -> Option<HitRecord>;
 }
 
-pub struct HittableList<'a>(Vec<Box<dyn Hittable + 'a>>);
+pub struct HittableList<'a>(Vec<Box<dyn Hittable + Sync + Send + 'a>>);
 
 impl HittableList<'_> {
     pub fn new() -> Self {
@@ -131,7 +131,7 @@ impl HittableList<'_> {
 }
 
 impl<'a> Deref for HittableList<'a> {
-    type Target = Vec<Box<dyn Hittable + 'a>>;
+    type Target = Vec<Box<dyn Hittable + Sync + Send + 'a>>;
 
     fn deref(&self) -> &Self::Target {
         &self.0

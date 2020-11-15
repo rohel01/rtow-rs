@@ -1,10 +1,12 @@
+use std::convert::TryInto;
 use std::io::stdout;
 
-use indicatif::ProgressIterator;
+use indicatif::{ParallelProgressIterator, ProgressIterator};
 use rand::Rng;
+use rayon::prelude::*;
 
 use crate::camera::Camera;
-use crate::data::{Color, Point3, Vec3};
+use crate::data::{write_color, Color, Point3, Vec3};
 use crate::hittable::{HitRange, Hittable, HittableList};
 use crate::ray::Ray;
 
@@ -61,23 +63,39 @@ fn main() {
         10.0,
     );
 
-    //Render
+    // Compute pixel lines in parallel
+    let mut lines: Vec<_> = (0..image_height as usize)
+        .into_par_iter()
+        .progress_count(image_height.try_into().unwrap())
+        .map(|j| {
+            let mut rng = rand::thread_rng();
+
+            let mut line: Vec<Color> = Vec::with_capacity(image_width as usize);
+            line.resize(image_width as usize, Color::new(0.0, 0.0, 0.0));
+
+            line.iter_mut().enumerate().for_each(|(i, pix)| {
+                for _ in 0..samples_per_pixel {
+                    let u = (i as f32 + rng.gen::<f32>()) / ((image_width - 1) as f32);
+                    let v = (j as f32 + rng.gen::<f32>()) / ((image_height - 1) as f32);
+
+                    let r = cam.get_ray(u, v);
+                    *pix = *pix + ray_color(&r, &world, &mut (0..max_depth));
+                }
+            });
+
+            (j, line)
+        })
+        .collect();
+
+    // Merge lines by sorting them in place
+    lines.par_sort_by(|a, b| b.0.cmp(&a.0));
+
+    //Render in PPM format
     println!("P3\n{} {}\n255", image_width, image_height);
-
-    let mut rng = rand::thread_rng();
-    for j in (0..image_height).rev().progress() {
-        for i in 0..image_width {
-            let mut pixel_color = Color::new(0.0, 0.0, 0.0);
-
-            for _ in 0..samples_per_pixel {
-                let u = (i as f32 + rng.gen::<f32>()) / ((image_width - 1) as f32);
-                let v = (j as f32 + rng.gen::<f32>()) / ((image_height - 1) as f32);
-
-                let r = cam.get_ray(u, v);
-                pixel_color = pixel_color + ray_color(&r, &world, &mut (0..max_depth));
-            }
-
-            data::write_color(&mut stdout(), &pixel_color, samples_per_pixel);
-        }
-    }
+    lines
+        .iter()
+        .progress()
+        .map(|t| &t.1)
+        .flatten()
+        .for_each(|pixel| write_color(&mut stdout(), &pixel, samples_per_pixel));
 }
